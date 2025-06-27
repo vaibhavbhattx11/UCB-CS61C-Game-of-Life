@@ -21,13 +21,53 @@
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
 Color *evaluateOnePixel(Image *image, int row, int col)
 {
-	//YOUR CODE HERE
+	Color *color = (Color *) malloc(sizeof(Color));
+	if(color == NULL) {
+		printf("Error allocating memory for color. \n");
+		exit(-1);
+	}
+	uint8_t lsb = image->image[row][col].B & 1; 
+	color->R = color->G = color->B = lsb * 255;
+	return color; 
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	//YOUR CODE HERE
+	Color **encryptedImage = (Color **) malloc(image->rows * sizeof(Color *));
+	if(encryptedImage == NULL) {
+		printf("Error allocating memory for encrypted image. \n");
+		exit(-1);
+	}
+	for(uint32_t i = 0; i < image->rows; i++) {
+		encryptedImage[i] = (Color *) malloc(image->cols * sizeof(Color));
+		if(encryptedImage[i] == NULL) {
+			printf("Error allocating memory for encrypted image row %u. \n", i);
+			for(uint32_t j = 0; j < i; j++) {
+				free(encryptedImage[j]);
+			}
+			free(encryptedImage);
+			exit(-1);
+		}
+		for(uint32_t j = 0; j < image->cols; j++) {
+			Color *color = evaluateOnePixel(image, i, j);
+			encryptedImage[i][j] = *color;
+			free(color);
+		}
+	}
+	Image *retImage = (Image *) malloc(sizeof(Image));
+	if(retImage == NULL) {
+		printf("Error allocating memory for return image. \n");
+		for(uint32_t i = 0; i < image->rows; i++) {
+			free(encryptedImage[i]);
+		}
+		free(encryptedImage);
+		exit(-1);
+	}
+	retImage->image = encryptedImage;
+	retImage->rows = image->rows;
+	retImage->cols = image->cols;	
+	return retImage;
 }
 
 /*
@@ -45,5 +85,15 @@ Make sure to free all memory before returning!
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+	if(argc != 2) {
+		printf("Usage: %s <filename>\n", argv[0]);
+		return -1;
+	}
+	char *filename = argv[1];
+	Image *image = readData(filename);
+	Image *encryptedImage = steganography(image);
+	writeData(encryptedImage);
+	freeImage(image);
+	freeImage(encryptedImage);
+	return 0;
 }
