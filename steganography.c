@@ -34,24 +34,24 @@ Color *evaluateOnePixel(Image *image, int row, int col)
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	Color **encryptedImage = (Color **) malloc(image->rows * sizeof(Color *));
-	if(encryptedImage == NULL) {
+	Color **encrypted_image = (Color **) malloc(image->rows * sizeof(Color *));
+	if(encrypted_image == NULL) {
 		printf("Error allocating memory for encrypted image. \n");
 		exit(-1);
 	}
 	for(uint32_t i = 0; i < image->rows; i++) {
-		encryptedImage[i] = (Color *) malloc(image->cols * sizeof(Color));
-		if(encryptedImage[i] == NULL) {
+		encrypted_image[i] = (Color *) malloc(image->cols * sizeof(Color));
+		if(encrypted_image[i] == NULL) {
 			printf("Error allocating memory for encrypted image row %u. \n", i);
 			for(uint32_t j = 0; j < i; j++) {
-				free(encryptedImage[j]);
+				free(encrypted_image[j]);
 			}
-			free(encryptedImage);
+			free(encrypted_image);
 			exit(-1);
 		}
 		for(uint32_t j = 0; j < image->cols; j++) {
 			Color *color = evaluateOnePixel(image, i, j);
-			encryptedImage[i][j] = *color;
+			encrypted_image[i][j] = *color;
 			free(color);
 		}
 	}
@@ -59,12 +59,12 @@ Image *steganography(Image *image)
 	if(retImage == NULL) {
 		printf("Error allocating memory for return image. \n");
 		for(uint32_t i = 0; i < image->rows; i++) {
-			free(encryptedImage[i]);
+			free(encrypted_image[i]);
 		}
-		free(encryptedImage);
+		free(encrypted_image);
 		exit(-1);
 	}
-	retImage->image = encryptedImage;
+	retImage->image = encrypted_image;
 	retImage->rows = image->rows;
 	retImage->cols = image->cols;	
 	return retImage;
@@ -91,9 +91,9 @@ int main(int argc, char **argv)
 	}
 	char *filename = argv[1];
 	Image *image = readData(filename);
-	Image *encryptedImage = steganography(image);
-	writeData(encryptedImage);
+	Image *encrypted_image = steganography(image);
+	writeData(encrypted_image);
 	freeImage(image);
-	freeImage(encryptedImage);
+	freeImage(encrypted_image);
 	return 0;
 }

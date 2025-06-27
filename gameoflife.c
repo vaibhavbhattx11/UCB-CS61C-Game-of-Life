@@ -22,14 +22,70 @@
 //and the left column as adjacent to the right column.
 Color *evaluateOneCell(Image *image, int row, int col, uint32_t rule)
 {
-	//YOUR CODE HERE
+	int sR = 0, sG = 0, sB = 0;
+	for(int i=row-1; i<=row+1; i++){
+		for(int j=col-1; j<=col+1; j++){
+			int r = (i + image->rows) % image->rows; 
+			int c = (j + image->cols) % image->cols; 
+			if(image->image[r][c].R > 0) {
+				if(i==row && j==col) sR+=9;
+				else sR++;
+			}
+			if(image->image[r][c].G > 0) {
+				if(i==row && j==col) sG+=9;
+				else sG++;
+			}
+			if(image->image[r][c].B > 0) {
+				if(i==row && j==col) sB+=9;
+				else sB++;
+			}
+		}
+	}
+	Color *color = (Color *)malloc(sizeof(Color *));
+	color->R = ((rule >> sR) & 1)*255;
+	color->G = ((rule >> sG) & 1)*255;
+	color->B = ((rule >> sB) & 1)*255;
+	return color;
 }
 
 //The main body of Life; given an image and a rule, computes one iteration of the Game of Life.
 //You should be able to copy most of this from steganography.c
 Image *life(Image *image, uint32_t rule)
 {
-	//YOUR CODE HERE
+	Color **next_image = (Color **) malloc(image->rows * sizeof(Color *));
+	if(next_image == NULL) {
+		printf("Error allocating memory for encrypted image. \n");
+		exit(-1);
+	}
+	for(uint32_t i = 0; i < image->rows; i++) {
+		next_image[i] = (Color *) malloc(image->cols * sizeof(Color));
+		if(next_image[i] == NULL) {
+			printf("Error allocating memory for encrypted image row %u. \n", i);
+			for(uint32_t j = 0; j < i; j++) {
+				free(next_image[j]);
+			}
+			free(next_image);
+			exit(-1);
+		}
+		for(uint32_t j = 0; j < image->cols; j++) {
+			Color *color = evaluateOneCell(image, i, j, rule);
+			next_image[i][j] = *color;
+			free(color);
+		}
+	}
+	Image *retImage = (Image *) malloc(sizeof(Image));
+	if(retImage == NULL) {
+		printf("Error allocating memory for return image. \n");
+		for(uint32_t i = 0; i < image->rows; i++) {
+			free(next_image[i]);
+		}
+		free(next_image);
+		exit(-1);
+	}
+	retImage->image = next_image;
+	retImage->rows = image->rows;
+	retImage->cols = image->cols;	
+	return retImage;
 }
 
 /*
@@ -49,5 +105,13 @@ You may find it useful to copy the code from steganography.c, to start.
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+	char *filename = argv[1];
+	char *rule_str = argv[2];
+	uint32_t rule = (uint32_t)strtoul(rule_str, NULL, 0);
+	Image *image = readData(filename);
+	Image *next_image = life(image, rule);
+	writeData(next_image);
+	freeImage(image);
+	freeImage(next_image);
+	return 0;
 }

@@ -32,7 +32,7 @@ Image *readData(char *filename)
 	}
 	char buf[5];
 	uint32_t n,m,g;
-	fscanf(fp, "%s %" SCNu32 " %" SCNu32 " %" SCNu32, buf, &n, &m, &g);
+	fscanf(fp, "%s %" SCNu32 " %" SCNu32 " %" SCNu32, buf, &m, &n, &g);
 	if(strcmp(buf, "P3") != 0){
 		printf("Error: Not a P3 file. \n");
 		fclose(fp);
@@ -81,7 +81,7 @@ void writeData(Image *image)
 	}
 	//printf("...where %u is the number of cols, and %u is the number of rows.\n", image->cols, image->rows);
 	printf("P3\n");
-	printf("%u %u\n", image->rows, image->cols);
+	printf("%u %u\n", image->cols, image->rows);
 	printf("255\n");
 	for(uint32_t i = 0; i < image->rows; i++) {
 		for(uint32_t j = 0; j < image->cols; j++) {
